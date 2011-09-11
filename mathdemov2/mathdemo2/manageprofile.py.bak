@@ -1,0 +1,205 @@
+import wx
+import wx.lib.colourselect as  csel
+import os
+import ConfigParser
+import sys
+
+class manageconf(wx.Panel):
+    def __init__(self, parent,profiles,frame):
+        wx.Panel.__init__(self, parent)
+
+        self.config = ConfigParser.RawConfigParser()
+        self.config.add_section('dict')
+        self.config.add_section('options')
+        self.config.add_section('settings')
+        self.config.add_section('color')
+
+        self.profile = None
+        self.remindex = None
+        self.remlabel = None
+        self.frame = frame
+        #t = wx.StaticText(self, -1, "This is a PageTwo object", (40,40))
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.rmtext = wx.StaticText(self, -1 , " Select a profile to Remove ")
+        self.crtext = wx.StaticText(self, -1 , " Type a profile name to Create(without .ext) ")
+        self.tc = wx.TextCtrl(self, -1, size=(125, -1) )
+        self.lc = wx.ListBox(self,10,(-1, -1),(170, 130),choices = profiles,style=wx.LB_SINGLE)
+        self.add = wx.Button(self , 1 , ' ADD ')
+        self.remove = wx.Button(self , 2 , ' REMOVE ')
+        self.cancel = wx.Button(self, 3, ' CLOSE ')
+        self.line = wx.StaticLine(self)
+        self.tc.SetFocus()
+    
+        vbox.Add(self.crtext ,0, wx.TOP|wx.ALIGN_CENTER , 30)
+        hbox1.Add(self.tc ,0,wx.RIGHT,10)
+        hbox1.Add(self.add ,0)
+        vbox.Add(hbox1,0,wx.ALL|wx.ALIGN_CENTRE,20)
+        vbox.Add(self.line,0,wx.TOP|wx.EXPAND,10)
+        vbox.Add(self.rmtext ,0, wx.TOP|wx.ALIGN_CENTER , 30)
+        vbox.Add(self.lc , 0 ,wx.ALL|wx.ALIGN_CENTER , 20)
+        hbox2.Add(self.remove ,0,wx.RIGHT,10) 
+        hbox2.Add(self.cancel ,0) 
+        vbox.Add(hbox2,0,wx.ALL|wx.ALIGN_CENTER , 30)
+        
+        self.add.Enable(False)
+        self.lc.SetSelection(0)
+        self.Bind(wx.EVT_TEXT, self.Ontext,self.tc)
+        self.Bind(wx.EVT_BUTTON, self.Onadd, id=1)
+        self.Bind(wx.EVT_BUTTON, self.Onremove, id=2)
+        self.Bind(wx.EVT_BUTTON, self.Oncancel, id=3)
+        self.Bind(wx.EVT_LISTBOX, self.Onlistselect ,self.lc)
+        
+        self.SetSizerAndFit(vbox)
+        self.Centre()
+        self.Show(True)
+    
+    def Onadd(self, event):
+        self.profile = self.tc.GetValue() + '.cfg'
+        self.defaultprofilecreate()
+        try:
+            with open(self.profile, 'wb') as configfile:
+                self.config.write(configfile)
+            self.lc.Append(self.profile)
+            self.add.Enable(False)
+            self.tc.SetValue('')
+        except:
+            print 'File creation error..Try again!'
+            pass
+
+    def Onremove(self, event):
+        if( self.remindex is None or self.remlabel is None or self.remlabel == '' ):
+            pass
+        else:
+            self.removeconfigfile()
+            self.lc.Delete(self.remindex)
+  
+    def Oncancel(self, event):
+        self.frame.Close()
+    
+    def Ontext(self,event):
+        i = len(event.GetString())
+        if(i > 0 ):
+            self.add.Enable(True)
+        else:
+            self.add.Enable(False)
+
+    def Onlistselect(self, event):
+        self.remindex = event.GetSelection()
+        self.remlabel = event.GetString()
+
+    def removeconfigfile(self):
+        
+        try:
+            fname = os.path.join(os.curdir,self.remlabel)
+            os.remove(fname)
+            #print 'remove file name',fname
+            
+        except:
+            print 'File remove error..Try again!'
+            pass
+        
+
+    def defaultprofilecreate(self):
+        self.butList1 = range(12)
+        self.butList2 = range(12)
+        self.butList3 = range(12)
+
+        self.butList1[0] = '9'
+        self.butList1[1] = '8'
+        self.butList1[2] = '7'
+        self.butList1[3] = '6'
+        self.butList1[4] = '5'
+        self.butList1[5] = '4'
+        self.butList1[6] = '3'
+        self.butList1[7] = '2'
+        self.butList1[8] = '1'
+        self.butList1[9] = '0'
+        self.butList1[10] = '<---'
+        self.butList1[11] = 'NEXT'
+
+        self.butList2[0] = ' + '
+        self.butList2[1] = ' -- '
+        self.butList2[2] = ' * '
+        self.butList2[3] = ' / '
+        self.butList2[4] = ' = '
+        self.butList2[5] = 'NEXT'
+        self.butList2[6] = 'PREV'
+        self.butList2[7] = 'UP'
+        self.butList2[8] = 'NEXTT'
+        self.butList2[9] = 'LEFT'
+        self.butList2[10] = 'DOWN'
+        self.butList2[11] = 'RIGHT'
+                
+        self.butList3[0] = 'DIV'
+        self.butList3[1] = 'LCM'
+        self.butList3[2] = 'BY'
+        self.butList3[3] = 'CROSS'
+        self.butList3[4] = 'DOT'
+        self.butList3[5] = 'DEL'
+        self.butList3[6] = ' ( '
+        self.butList3[7] = ' ) '
+        self.butList3[8] = ' , '
+        self.butList3[9] = ' | '
+        self.butList3[10] = ' % '
+        self.butList3[11] = 'NEXT'
+
+        self.Sound = False
+        self.Bclick = True
+        self.Lclick = True
+        self.Showgrid = False
+        self.Sbar = True
+        self.Mbspeed = 5
+        self.Mispeed = 2
+        self.Zoomlevel = 2
+        self.paneltype = 'VERTICAL'
+        self.panelnos  = '3'
+        self.Bpcolor =   (128, 255, 255, 255)
+        self.Hlcolor =   (255, 0, 0, 255)
+                
+        self.config.set('dict' ,'butlist1',repr(self.butList1))
+        self.config.set('dict' ,'butlist2',repr(self.butList2))
+        self.config.set('dict' ,'butlist3',repr(self.butList3))
+
+        self.config.set('options' ,'sound',self.Sound)
+        self.config.set('options' ,'bclick',self.Bclick)
+        self.config.set('options' ,'lclick',self.Lclick)
+        self.config.set('options' ,'showgrid',self.Showgrid)
+        self.config.set('options' ,'sbar',self.Sbar)
+        
+        self.config.set('settings' ,'mbspeed',self.Mbspeed)
+        self.config.set('settings' ,'mipeed',self.Mispeed)
+        self.config.set('settings' ,'zoomlevel',self.Zoomlevel)
+        self.config.set('settings' ,'Paneltype',self.paneltype)
+        self.config.set('settings' ,'Panelnos',self.panelnos)
+
+        self.config.set('color' ,'bpcolor',repr(self.Bpcolor))
+        self.config.set('color' ,'hlcolor',repr(self.Hlcolor))
+
+    
+class MainFrame(wx.Frame):
+    def __init__(self):
+        wx.Frame.__init__(self, None, title="Profile Settings")
+
+        p = wx.Panel(self, -1)
+        nb = wx.Notebook(p,-1, style=wx.BK_DEFAULT)
+
+        self.profiles = []
+        ext = '.cfg'
+        for root, dirs, files in os.walk('./'):
+            for name in files:       
+                filename = os.path.join(root, name)
+                if os.path.splitext(filename)[1] == ext:
+                    self.profiles.append(name)
+                    #print name
+        
+        self.manage = manageconf(nb ,self.profiles,self)
+        nb.AddPage(self.manage, "Manage Profile")
+        
+        sizer = wx.BoxSizer()
+        sizer.Add(nb, 1, wx.EXPAND)
+        p.SetSizer(sizer)
+        self.Center()
+        self.Show()
